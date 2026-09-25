@@ -1,6 +1,15 @@
+# Teoria da Computação e Compiladores
+# Aluno: Pedro Elias de Araújo Correa
+# RA: 202612345
+# Data: 25/09/2026
+# Assinatura de presença — Atividade: MiniLang if/else/while e AST
+
 """Analisa tokens e constrói a árvore sintática abstrata da MiniLang."""
 
-from ast_nodes import Number, Identifier, BinaryExpression, Assignment
+from ast_nodes import (
+    Number, Identifier, BinaryExpression, Assignment,
+    Program, IfStatement, WhileLoop, Block,
+)
 
 # Parser descendente recursivo para a gramática das expressões da linguagem.
 class Parser:
@@ -25,12 +34,50 @@ class Parser:
         return token
 
     def parse(self):
-        # O programa atual contém uma atribuição completa como expressão principal.
-        node = self.parse_assignment()
-        # Nenhum token pode sobrar depois do ponto e vírgula final.
-        if self.current() is not None:
-            raise SyntaxError(f"Token inesperado: {self.current().valor}")
-        return node
+        statements = []
+        while self.current() is not None:
+            statements.append(self.parse_statement())
+        return Program(statements)
+
+    def parse_statement(self):
+        token = self.current()
+        if token is None:
+            raise SyntaxError("Fim inesperado da instrução.")
+        if token.tipo == "IF":
+            return self.parse_if()
+        if token.tipo == "WHILE":
+            return self.parse_while()
+        if token.tipo == "ABRE_CHAVE":
+            return self.parse_block()
+        return self.parse_assignment()
+
+    def parse_if(self):
+        self.consume("IF")
+        self.consume("ABRE_PARENTESES")
+        condition = self.parse_expression()
+        self.consume("FECHA_PARENTESES")
+        then_branch = self.parse_statement()
+        else_branch = None
+        if self.current() and self.current().tipo == "ELSE":
+            self.consume("ELSE")
+            else_branch = self.parse_statement()
+        return IfStatement(condition, then_branch, else_branch)
+
+    def parse_while(self):
+        self.consume("WHILE")
+        self.consume("ABRE_PARENTESES")
+        condition = self.parse_expression()
+        self.consume("FECHA_PARENTESES")
+        body = self.parse_statement()
+        return WhileLoop(condition, body)
+
+    def parse_block(self):
+        self.consume("ABRE_CHAVE")
+        statements = []
+        while self.current() and self.current().tipo != "FECHA_CHAVE":
+            statements.append(self.parse_statement())
+        self.consume("FECHA_CHAVE")
+        return Block(statements)
 
     def parse_assignment(self):
         # Uma atribuição segue o formato: identificador = expressão ;
@@ -41,7 +88,16 @@ class Parser:
         return Assignment(Identifier(nome.valor), valor)
 
     def parse_expression(self):
-        # Soma e subtração têm menor precedência que multiplicação e divisão.
+        # Comparações têm menor precedência que + e -
+        left = self.parse_additive()
+        while self.current() and self.current().tipo in ("MENOR", "MAIOR", "IGUAL"):
+            op = self.current().valor
+            self.position += 1
+            right = self.parse_additive()
+            left = BinaryExpression(left, op, right)
+        return left
+
+    def parse_additive(self):
         left = self.parse_term()
         while self.current() and self.current().tipo in ("SOMA", "SUBTRACAO"):
             op = self.current().valor

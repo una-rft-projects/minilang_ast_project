@@ -3,8 +3,8 @@
 from token_model import Token
 
 def tokenize(codigo: str) -> list[Token]:
-    # Insere espaços ao redor dos símbolos para que possam ser separados.
-    for simbolo in [";", "+", "-", "*", "/", "=", "(", ")"]:
+    # "==" antes de "=", senão "==" vira dois "=" separados
+    for simbolo in ["==", ";", "+", "-", "*", "/", "=", "(", ")", "{", "}", "<", ">"]:
         codigo = codigo.replace(simbolo, f" {simbolo} ")
 
     # A separação por espaços transforma o código em lexemas individuais.
@@ -14,7 +14,9 @@ def tokenize(codigo: str) -> list[Token]:
     mapa = {
         "=": "ATRIBUICAO", "+": "SOMA", "-": "SUBTRACAO",
         "*": "MULTIPLICACAO", "/": "DIVISAO", ";": "PONTO_E_VIRGULA",
-        "(": "ABRE_PARENTESES", ")": "FECHA_PARENTESES"
+        "(": "ABRE_PARENTESES", ")": "FECHA_PARENTESES",
+        "<": "MENOR", ">": "MAIOR", "==": "IGUAL",
+        "{": "ABRE_CHAVE", "}": "FECHA_CHAVE",
     }
 
     # Classifica cada lexema e cria o token correspondente.
@@ -24,8 +26,12 @@ def tokenize(codigo: str) -> list[Token]:
             # Números permanecem como texto; a conversão para int ocorre no parser.
             tokens.append(Token("NUMERO", lexema))
         elif lexema.isidentifier():
-            # Identificadores são nomes válidos de variáveis na MiniLang.
-            tokens.append(Token("IDENTIFICADOR", lexema))
+            palavras_chave = {"if": "IF", "else": "ELSE", "while": "WHILE"}
+            if lexema in palavras_chave:
+                tokens.append(Token(palavras_chave[lexema], lexema))
+            else:
+                # Identificadores são nomes válidos de variáveis na MiniLang.
+                tokens.append(Token("IDENTIFICADOR", lexema))
         elif lexema in mapa:
             # Operadores e delimitadores recebem seus tipos específicos.
             tokens.append(Token(mapa[lexema], lexema))
