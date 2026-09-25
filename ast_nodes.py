@@ -1,6 +1,7 @@
 """Declara os nós que podem formar a árvore sintática abstrata (AST)."""
 
 from dataclasses import dataclass
+from typing import Optional
 
 # Classe-base comum para todos os elementos da AST.
 class ASTNode:
@@ -28,3 +29,22 @@ class BinaryExpression(ASTNode):
 class Assignment(ASTNode):
     target: Identifier
     value: ASTNode
+
+@dataclass
+class IfStatement(ASTNode):
+    condition: ASTNode
+    then_branch: ASTNode
+    else_branch: Optional[ASTNode] = None
+
+@dataclass
+class WhileLoop(ASTNode):
+    condition: ASTNode
+    body: ASTNode
+
+@dataclass
+class Block(ASTNode):
+    statements: list
+
+@dataclass
+class Program(ASTNode):
+    statements: list

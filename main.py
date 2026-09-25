@@ -9,7 +9,7 @@ from ast_printer import print_ast
 
 def executar(codigo, interpreter):
     # Exibe o código fonte que será processado nesta rodada.
-    print("\nCÓDIGO:", codigo)
+    print("\nCÓDIGO:\n" + codigo)
     # Etapa 1: transforma o texto em tokens.
     tokens = tokenize(codigo)
 
@@ -32,18 +32,11 @@ def executar(codigo, interpreter):
     print("MEMÓRIA:", interpreter.memory)
 
 def main():
-    # Um único interpretador permite que as atribuições sejam reutilizadas.
     interpreter = Interpreter()
-    # O arquivo .mini contém o código-fonte do exemplo, uma instrução por linha.
     arquivo_exemplo = Path(__file__).with_name("calcula_bonus.mini")
-    exemplos = arquivo_exemplo.read_text(encoding="utf-8").splitlines()
-
-    # Ignora linhas vazias para que possam ser usadas apenas para organizar o arquivo.
-    exemplos = [codigo.strip() for codigo in exemplos if codigo.strip()]
-
-    # Cada instrução percorre o pipeline completo da MiniLang.
-    for codigo in exemplos:
-        executar(codigo, interpreter)
+    # O programa inteiro (várias instruções, if/while) é parseado de uma vez.
+    codigo = arquivo_exemplo.read_text(encoding="utf-8")
+    executar(codigo, interpreter)
 
 # Executa a demonstração somente quando este arquivo é chamado diretamente.
 if __name__ == "__main__":

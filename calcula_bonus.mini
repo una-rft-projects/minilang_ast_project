@@ -2,3 +2,15 @@ idade = 20 + 5 * 2;
 bonus = 10;
 total = idade + bonus * 2;
 resultado = (20 + 5) * 2;
+
+if (idade > 25) {
+  bonus = bonus + 5;
+} else {
+  bonus = bonus + 1;
+}
+
+contador = 0;
+while (contador < 3) {
+  contador = contador + 1;
+  total = total + 1;
+}
